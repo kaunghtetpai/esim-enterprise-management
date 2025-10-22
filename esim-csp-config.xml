@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<SyncML xmlns="SYNCML:SYNCML1.2">
+  <SyncBody>
+    <!-- Reset eUICC to factory state -->
+    <Exec>
+      <CmdID>1</CmdID>
+      <Item>
+        <Target>
+          <LocURI>./Device/Vendor/MSFT/eUICCs/{eUICC}/Actions/ResetToFactoryState</LocURI>
+        </Target>
+      </Item>
+    </Exec>
+    
+    <!-- Configure download server -->
+    <Replace>
+      <CmdID>2</CmdID>
+      <Item>
+        <Target>
+          <LocURI>./Device/Vendor/MSFT/eUICCs/{eUICC}/DownloadServers/{ServerName}/AutoEnable</LocURI>
+        </Target>
+        <Data>true</Data>
+      </Item>
+    </Replace>
+    
+    <!-- Enable local UI -->
+    <Replace>
+      <CmdID>3</CmdID>
+      <Item>
+        <Target>
+          <LocURI>./Device/Vendor/MSFT/eUICCs/{eUICC}/Policies/LocalUIEnabled</LocURI>
+        </Target>
+        <Data>true</Data>
+      </Item>
+    </Replace>
+  </SyncBody>
+</SyncML>
