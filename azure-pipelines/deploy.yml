@@ -1,0 +1,146 @@
+trigger: none
+
+variables:
+  azureSubscription: 'Azure Subscription'
+  resourceGroupName: 'epm-rg'
+  appServiceName: 'esim-portal-app'
+  containerRegistry: 'esimportal.azurecr.io'
+
+stages:
+- stage: DeployStaging
+  displayName: 'Deploy to Staging'
+  condition: eq(variables['Build.SourceBranch'], 'refs/heads/develop')
+  jobs:
+  - deployment: DeployToStaging
+    displayName: 'Deploy to Staging Environment'
+    pool:
+      vmImage: 'ubuntu-latest'
+    environment: 'staging'
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - task: AzureWebAppContainer@1
+            inputs:
+              azureSubscription: $(azureSubscription)
+              appName: '$(appServiceName)-staging'
+              containers: '$(containerRegistry)/esim-portal:$(Build.BuildId)'
+              appSettings: |
+                -NODE_ENV staging
+                -DATABASE_URL $(STAGING_DATABASE_URL)
+                -REDIS_URL $(STAGING_REDIS_URL)
+                -JWT_SECRET $(STAGING_JWT_SECRET)
+            displayName: 'Deploy to Azure App Service (Staging)'
+          
+          - task: AzureCLI@2
+            inputs:
+              azureSubscription: $(azureSubscription)
+              scriptType: 'bash'
+              scriptLocation: 'inlineScript'
+              inlineScript: |
+                # Run database migrations
+                az webapp config appsettings set \
+                  --resource-group $(resourceGroupName) \
+                  --name $(appServiceName)-staging \
+                  --settings RUN_MIGRATIONS=true
+                
+                # Restart app to apply migrations
+                az webapp restart \
+                  --resource-group $(resourceGroupName) \
+                  --name $(appServiceName)-staging
+            displayName: 'Run Database Migrations'
+          
+          - script: |
+              # Wait for app to be ready
+              sleep 30
+              
+              # Run smoke tests
+              curl -f https://$(appServiceName)-staging.azurewebsites.net/health
+              
+              # Run API tests
+              npm run test:api:staging
+            displayName: 'Run Smoke Tests'
+
+- stage: DeployProduction
+  displayName: 'Deploy to Production'
+  condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
+  dependsOn: []
+  jobs:
+  - deployment: DeployToProduction
+    displayName: 'Deploy to Production Environment'
+    pool:
+      vmImage: 'ubuntu-latest'
+    environment: 'production'
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - task: AzureWebAppContainer@1
+            inputs:
+              azureSubscription: $(azureSubscription)
+              appName: $(appServiceName)
+              containers: '$(containerRegistry)/esim-portal:$(Build.BuildId)'
+              appSettings: |
+                -NODE_ENV production
+                -DATABASE_URL $(PRODUCTION_DATABASE_URL)
+                -REDIS_URL $(PRODUCTION_REDIS_URL)
+                -JWT_SECRET $(PRODUCTION_JWT_SECRET)
+                -MPT_API_URL $(MPT_API_URL)
+                -MPT_API_KEY $(MPT_API_KEY)
+                -ATOM_API_URL $(ATOM_API_URL)
+                -ATOM_API_KEY $(ATOM_API_KEY)
+                -U9_API_URL $(U9_API_URL)
+                -U9_API_KEY $(U9_API_KEY)
+                -MYTEL_API_URL $(MYTEL_API_URL)
+                -MYTEL_API_KEY $(MYTEL_API_KEY)
+            displayName: 'Deploy to Azure App Service (Production)'
+          
+          - task: AzureCLI@2
+            inputs:
+              azureSubscription: $(azureSubscription)
+              scriptType: 'bash'
+              scriptLocation: 'inlineScript'
+              inlineScript: |
+                # Create deployment slot for zero-downtime deployment
+                az webapp deployment slot create \
+                  --resource-group $(resourceGroupName) \
+                  --name $(appServiceName) \
+                  --slot staging
+                
+                # Deploy to staging slot first
+                az webapp config container set \
+                  --resource-group $(resourceGroupName) \
+                  --name $(appServiceName) \
+                  --slot staging \
+                  --docker-custom-image-name $(containerRegistry)/esim-portal:$(Build.BuildId)
+                
+                # Wait for staging slot to be ready
+                sleep 60
+                
+                # Swap staging to production
+                az webapp deployment slot swap \
+                  --resource-group $(resourceGroupName) \
+                  --name $(appServiceName) \
+                  --slot staging \
+                  --target-slot production
+            displayName: 'Zero-Downtime Deployment'
+          
+          - script: |
+              # Wait for deployment to complete
+              sleep 30
+              
+              # Run production health checks
+              curl -f https://$(appServiceName).azurewebsites.net/health
+              
+              # Run critical path tests
+              npm run test:critical:production
+            displayName: 'Production Health Checks'
+          
+          - task: AzureMonitorAlerts@0
+            inputs:
+              azureSubscription: $(azureSubscription)
+              resourceGroupName: $(resourceGroupName)
+              filterType: 'resource'
+              resource: $(appServiceName)
+              alertState: 'enabled'
+            displayName: 'Enable Production Monitoring'
