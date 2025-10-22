@@ -80,22 +80,67 @@ Export-eSIMReport -OutputPath "C:\Reports"
 - Group.ReadWrite.All
 - DeviceManagementApps.ReadWrite.All
 
+## Health Check & Maintenance
+
+### Quick Health Check (Daily)
+```powershell
+.\run-health-check.ps1 -Quick
+```
+Performs read-only analysis of:
+- Configuration profiles
+- Compliance policies
+- Device groups
+- Graph API connectivity
+
+### Full Health Check (Weekly)
+```powershell
+.\run-health-check.ps1 -Full
+```
+Comprehensive analysis including:
+- Conditional Access policies
+- OneDrive & BitLocker compliance
+- ePM integration readiness
+- Detailed reporting
+
+### Auto-Fix Mode (Monthly)
+```powershell
+.\run-health-check.ps1 -Fix
+```
+**WARNING**: Makes automatic changes!
+- Archives deprecated policies
+- Removes unused configurations
+- Creates missing baseline policies
+- Updates group assignments
+
+### eSIM Profile Management Preparation
+```powershell
+.\run-health-check.ps1 -PrepareePM
+```
+Prepares environment for ePM integration:
+- Creates carrier-specific dynamic groups
+- Establishes baseline MDM profiles
+- Enables audit logging
+- Validates policy assignments
+
 ## Operational Tasks
 
 ### Daily Operations
-1. Run dashboard: `Show-eSIMDashboard`
-2. Check compliance status
-3. Review failed deployments
+1. Run quick health check: `run-health-check.ps1 -Quick`
+2. Review dashboard: `Show-eSIMDashboard`
+3. Check compliance status
+4. Review failed deployments
 
 ### Weekly Reports
-1. Export device report: `Export-eSIMReport`
-2. Review carrier distribution
-3. Update profiles if needed
+1. Full health check: `run-health-check.ps1 -Full`
+2. Export device report: `Export-eSIMReport`
+3. Review carrier distribution
+4. Update profiles if needed
 
 ### Monthly Maintenance
-1. Update compliance policies
+1. Auto-fix health issues: `run-health-check.ps1 -Fix`
 2. Review automation scripts
 3. Audit access logs
+4. Update compliance policies
 
 ## Troubleshooting
 
