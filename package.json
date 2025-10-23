@@ -1,7 +1,7 @@
 {
-  "name": "esim-device-management-portal",
+  "name": "esim-enterprise-management",
   "version": "1.0.0",
-  "description": "eSIM & Device Management Portal for Myanmar carriers",
+  "description": "eSIM Business Manager Portal with Microsoft Intune integration for Myanmar carriers",
   "scripts": {
     "dev:frontend": "cd frontend && npm start",
     "dev:backend": "cd backend && npm run dev",
@@ -9,11 +9,13 @@
     "build:backend": "cd backend && npm run build",
     "build": "npm run build:frontend && npm run build:backend",
     "test": "npm run test:frontend && npm run test:backend",
-    "test:frontend": "cd frontend && npm test",
+    "test:frontend": "cd frontend && npm test -- --watchAll=false",
     "test:backend": "cd backend && npm test",
-    "install:all": "npm install && cd frontend && npm install && cd ../backend && npm install"
+    "install:all": "npm install && cd frontend && npm install && cd ../backend && npm install",
+    "start": "npm run dev:backend",
+    "postinstall": "npm run install:all"
   },
-  "keywords": ["esim", "device-management", "myanmar", "pwa"],
+  "keywords": ["esim", "intune", "device-management", "myanmar", "pwa", "business-manager"],
   "author": "eSIM Portal Team",
   "license": "MIT"
 }

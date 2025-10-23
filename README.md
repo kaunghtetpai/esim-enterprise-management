@@ -1,15 +1,16 @@
-# eSIM & Device Management Portal (ePM)
+# eSIM Business Manager Portal
 
-Production-ready web application for managing eSIM profiles, activation codes, subscriptions, campaigns, devices, and notifications for Myanmar carriers. Complete GSMA SGP.22/SGP.32 compliant implementation with enterprise security framework.
+Production-ready web application for managing eSIM profiles with Microsoft Intune integration for Myanmar carriers. Complete GSMA SGP.22/SGP.32 compliant implementation with enterprise security framework.
 
 ## Project Overview
 
-**Platform**: 100% Web Application / Windows PWA  
+**Platform**: Web Application / Windows PWA with Microsoft Intune Integration  
 **Source Control**: GitHub (https://github.com/kaunghtetpai/esim-enterprise-management)  
-**CI/CD**: Azure DevOps  
+**CI/CD**: GitHub Actions + Azure DevOps  
 **Supported Operators**: MPT (414-01), ATOM (414-06), U9 (414-07), MYTEL (414-09)  
-**Compliance**: GSMA SGP.22/SGP.32 certified  
-**Security**: PKI infrastructure, HSM integration, AES-256 encryption  
+**Compliance**: GSMA SGP.22/SGP.32 certified, Myanmar telecom regulations  
+**Security**: PKI infrastructure, HSM integration, AES-256 encryption, Azure AD authentication  
+**Integration**: Microsoft Intune Graph API, Myanmar carrier APIs  
 
 ## Architecture
 
@@ -35,67 +36,64 @@ Database (Azure SQL/PostgreSQL)
 └── Audit Logs
 ```
 
-## Features
+## Core Features
 
-### Profile Management
-- Add Profile / Add Profile by UPP (User Provisioning Portal)
-- Generate AC (Single / Batch / By UPP)
-- Query Batch AC generation results
-- Upload profile secret
-- Delete profile
-- Query profile details, logs, and status
-- Notifications for profile updates or errors
-- Update profile parameters / Update profile by UPP
-- Signature management for profile validation
+### Microsoft Intune Integration
+- Real-time device inventory sync from Intune
+- Automatic eSIM profile assignment to managed devices
+- Device compliance monitoring and enforcement
+- Azure AD authentication and user management
+- Remote profile activation via Intune commands
 
-### Campaign Management
-- Add / Delete / Unlock campaign profiles
-- Query campaign profile resources
-- Profile recycle management (set recycle time, notifications)
-- ES2+ interface integration for carrier-specific operations
+### eSIM Profile Management
+- Create, update, delete eSIM profiles
+- Bulk profile operations (import/export)
+- Profile categorization by department, device type, user
+- Complete audit trail for all profile changes
+- GSMA SGP.22/SGP.32 compliant operations
 
-### AC (Activation Code) Management
-- Single and batch AC generation
-- Allocate AC to profiles
-- Check AC status
-- Download AC from operator
-- Query AC list and batch task results
-- Revoke or confirm AC usage
+### Device & User Management
+- Assign/unassign eSIM profiles via Intune
+- Track device lifecycle and eSIM usage per user
+- Enforce compliance with company policies
+- User role management (Admin, IT Staff, End User)
+- Department-based access control
 
-### Subscription & Profile Configuration
-- Create configuration templates (Quick Generation / Recommended)
-- Assign subscription plans to profiles
-- Generate AC for new or existing profiles
-- Monitor profile status (active, inactive, pending, failed)
-- Delete or recycle expired profiles
+### Activation & Migration
+- Remote eSIM activation on Intune-managed devices
+- SIM to eSIM migration workflows
+- eSIM to eSIM profile migration
+- Automated notifications for success/failure
+- Detailed activation logs and status tracking
 
-### Device Management
-- Batch import devices
-- Query device list and details
-- Switch profile on devices
-- Delete or deactivate device
-- Bootstrap list for initial provisioning
-- Troubleshoot device connectivity (download failure, network issues)
+### Dashboard & Analytics
+- Admin dashboard with real-time statistics
+- IT staff dashboard for department management
+- Usage analytics by carrier, department, region
+- Compliance reporting and alerts
+- Customizable views for different roles
 
-### Notifications & Reporting
-- Send notifications for profile and device events
-- Recycle notifications
-- Download orders, confirm/cancel orders
-- Query batch task results
-- Audit logs for all operations
+### Reporting & Compliance
+- Generate reports by user, device, department, region
+- Export reports in PDF and Excel formats
+- Myanmar telecom regulatory compliance
+- Automated audit logging
+- Data retention policies (7-year requirement)
 
-### Security & Teamwork
-- Role-based access control: Admin, Operator, Viewer
-- Track actions by team members
-- Secure authentication (OAuth2 / JWT)
-- Input validation, HTTPS/TLS, audit logging
+### Security & Localization
+- Role-based access control with Azure AD
+- Myanmar language UI support
+- Myanmar SIM numbering format handling
+- Local telecom operator integration
+- PKI-based profile authentication
 
 ## Quick Start
 
 ### Prerequisites
-- Node.js 18+
-- Azure CLI
+- Node.js 18+ or 20+
+- Azure CLI (for Intune integration)
 - Git
+- PostgreSQL 14+ (for production)
 
 ### Installation
 
@@ -105,37 +103,35 @@ git clone https://github.com/kaunghtetpai/esim-enterprise-management.git
 cd esim-enterprise-management
 ```
 
-2. Install dependencies:
+2. Install all dependencies:
 ```bash
-# Frontend
-cd frontend
-npm install
-
-# Backend
-cd ../backend
-npm install
+npm run install:all
 ```
 
 3. Configure environment:
 ```bash
 cp .env.example .env
-# Edit .env with your configuration
+# Edit .env with your Azure AD and carrier API credentials
 ```
 
 4. Start development servers:
 ```bash
-# Backend
-npm run dev
+# Start backend (Terminal 1)
+npm run dev:backend
 
-# Frontend (new terminal)
-cd frontend
-npm start
+# Start frontend (Terminal 2)
+npm run dev:frontend
 ```
 
 5. Access the application:
 - Web App: http://localhost:3000
 - API: http://localhost:8000
-- API Docs: http://localhost:8000/docs
+- Health Check: http://localhost:8000/health
+
+### Build for Production
+```bash
+npm run build
+```
 
 ## Project Structure
 
@@ -225,17 +221,28 @@ DELETE /api/v1/campaigns/{id}      # Delete campaign
 
 ### Environment Variables
 ```bash
-# Database
-DATABASE_URL=postgresql://user:pass@localhost:5432/epm_db
+# Application
+NODE_ENV=production
+PORT=8000
 
-# Redis
+# Database
+DATABASE_URL=postgresql://user:pass@localhost:5432/esim_portal
+DATABASE_SSL=true
+
+# Redis Cache
 REDIS_URL=redis://localhost:6379/0
 
 # Authentication
 JWT_SECRET=your-jwt-secret
 JWT_EXPIRES_IN=24h
 
-# Carrier APIs
+# Microsoft Azure Integration
+AZURE_CLIENT_ID=your-azure-client-id
+AZURE_CLIENT_SECRET=your-azure-client-secret
+AZURE_TENANT_ID=your-azure-tenant-id
+AZURE_GRAPH_SCOPE=https://graph.microsoft.com/.default
+
+# Myanmar Carrier APIs
 MPT_API_URL=https://api.mpt.com.mm
 MPT_API_KEY=your-mpt-api-key
 ATOM_API_URL=https://api.atom.com.mm
@@ -245,9 +252,9 @@ U9_API_KEY=your-u9-api-key
 MYTEL_API_URL=https://api.mytel.com.mm
 MYTEL_API_KEY=your-mytel-api-key
 
-# Azure
+# Azure Storage
 AZURE_STORAGE_CONNECTION_STRING=your-storage-connection
-AZURE_SERVICE_BUS_CONNECTION_STRING=your-servicebus-connection
+AZURE_KEY_VAULT_URL=https://your-keyvault.vault.azure.net/
 ```
 
 ### Myanmar Carriers Configuration
@@ -429,28 +436,29 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## Roadmap
 
 ### Phase 1 (Completed)
-- [x] Core profile management
-- [x] Basic AC generation
-- [x] Device registration
-- [x] Myanmar carrier integration
-- [x] GSMA SGP.22/SGP.32 compliance
-- [x] Enterprise security framework
-- [x] React.js PWA frontend
-- [x] Node.js/FastAPI backend
-- [x] Azure DevOps CI/CD pipelines
+- [x] Microsoft Intune integration with Graph API
+- [x] eSIM profile management with GSMA compliance
+- [x] Device assignment and activation workflows
+- [x] Myanmar carrier integration (MPT, ATOM, U9, MYTEL)
+- [x] Azure AD authentication and RBAC
+- [x] Admin and IT staff dashboards
+- [x] React.js PWA frontend with Material-UI
+- [x] Node.js TypeScript backend
+- [x] PostgreSQL database with audit logging
+- [x] GitHub Actions CI/CD pipeline
 
 ### Phase 2 (Q1 2025)
-- [ ] Advanced campaign management
-- [ ] Bulk operations optimization
-- [ ] Real-time notifications
-- [ ] Enhanced reporting dashboard
-- [ ] Mobile companion app
+- [ ] Advanced bulk operations and automation
+- [ ] Real-time notifications and alerts
+- [ ] Enhanced analytics and reporting
+- [ ] Mobile companion app for end users
+- [ ] Advanced compliance monitoring
 
 ### Phase 3 (Q2 2025)
-- [ ] Multi-tenant support
-- [ ] Advanced analytics
+- [ ] Multi-tenant organization support
+- [ ] AI-powered usage analytics
 - [ ] International carrier expansion
-- [ ] AI-powered insights
+- [ ] Advanced security features (MFA, conditional access)
 
 ## Changelog
 
