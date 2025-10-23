@@ -58,31 +58,14 @@ const theme = createTheme({
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      retry: (failureCount, error: any) => {
-        // Don't retry on 4xx errors except 429
-        if (error?.response?.status >= 400 && error?.response?.status < 500 && error?.response?.status !== 429) {
-          return false;
-        }
-        return failureCount < 3;
-      },
+      retry: 3,
       staleTime: 5 * 60 * 1000,
       gcTime: 10 * 60 * 1000,
       refetchOnWindowFocus: false,
-      refetchOnReconnect: true,
-      onError: (error: any) => {
-        ErrorHandler.handle(error);
-      }
+      refetchOnReconnect: true
     },
     mutations: {
-      retry: (failureCount, error: any) => {
-        if (error?.response?.status >= 400 && error?.response?.status < 500) {
-          return false;
-        }
-        return failureCount < 2;
-      },
-      onError: (error: any) => {
-        ErrorHandler.handle(error);
-      }
+      retry: 2
     }
   }
 });
