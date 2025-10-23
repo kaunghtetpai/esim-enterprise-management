@@ -3,6 +3,11 @@ import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import dotenv from 'dotenv';
+import { query } from './config/database';
+import profileRoutes from './routes/profiles';
+import deviceRoutes from './routes/devices';
+import userRoutes from './routes/users';
+import reportRoutes from './routes/reports';
 
 dotenv.config();
 
@@ -25,16 +30,32 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
 });
 
 // Health check endpoint
-app.get('/health', (req, res) => {
-  res.json({ 
-    status: 'OK', 
-    timestamp: new Date().toISOString(),
-    version: '1.0.0'
-  });
+app.get('/health', async (req, res) => {
+  try {
+    await query('SELECT 1');
+    res.json({ 
+      status: 'OK', 
+      timestamp: new Date().toISOString(),
+      version: '1.0.0',
+      database: 'connected'
+    });
+  } catch (error) {
+    res.status(503).json({ 
+      status: 'ERROR', 
+      timestamp: new Date().toISOString(),
+      database: 'disconnected'
+    });
+  }
 });
 
 // API routes
-app.get('/api/v1/dashboard/stats', (req, res) => {
+app.use('/api/v1/profiles', profileRoutes);
+app.use('/api/v1/devices', deviceRoutes);
+app.use('/api/v1/users', userRoutes);
+app.use('/api/v1/reports', reportRoutes);
+
+// Dashboard stats
+app.get('/api/v1/dashboard/stats', async (req, res) => {
   try {
     res.json({
       totalProfiles: 150,
@@ -74,4 +95,5 @@ app.use('*', (req, res) => {
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
   console.log(`Health check: http://localhost:${PORT}/health`);
+  console.log(`API endpoints: http://localhost:${PORT}/api/v1`);
 });
