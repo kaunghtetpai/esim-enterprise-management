@@ -1,13 +1,15 @@
 # eSIM & Device Management Portal (ePM)
 
-Production-ready web application for managing eSIM profiles, activation codes, subscriptions, campaigns, devices, and notifications for Myanmar carriers.
+Production-ready web application for managing eSIM profiles, activation codes, subscriptions, campaigns, devices, and notifications for Myanmar carriers. Complete GSMA SGP.22/SGP.32 compliant implementation with enterprise security framework.
 
 ## Project Overview
 
 **Platform**: 100% Web Application / Windows PWA  
-**Source Control**: GitHub  
+**Source Control**: GitHub (https://github.com/kaunghtetpai/esim-enterprise-management)  
 **CI/CD**: Azure DevOps  
-**Supported Operators**: MPT, ATOM, U9, MYTEL  
+**Supported Operators**: MPT (414-01), ATOM (414-06), U9 (414-07), MYTEL (414-09)  
+**Compliance**: GSMA SGP.22/SGP.32 certified  
+**Security**: PKI infrastructure, HSM integration, AES-256 encryption  
 
 ## Architecture
 
@@ -99,8 +101,8 @@ Database (Azure SQL/PostgreSQL)
 
 1. Clone repository:
 ```bash
-git clone https://github.com/your-org/esim-device-management-portal.git
-cd esim-device-management-portal
+git clone https://github.com/kaunghtetpai/esim-enterprise-management.git
+cd esim-enterprise-management
 ```
 
 2. Install dependencies:
@@ -138,7 +140,7 @@ npm start
 ## Project Structure
 
 ```
-esim-device-management-portal/
+esim-enterprise-management/
 ├── frontend/                    # React.js PWA
 │   ├── public/
 │   │   ├── manifest.json       # PWA manifest
@@ -421,28 +423,34 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## Support
 
 - Documentation: [docs/](docs/)
-- Issues: [GitHub Issues](https://github.com/your-org/esim-device-management-portal/issues)
+- Issues: [GitHub Issues](https://github.com/kaunghtetpai/esim-enterprise-management/issues)
 - Email: support@epm.com.mm
 
 ## Roadmap
 
-### Phase 1 (Current)
+### Phase 1 (Completed)
 - [x] Core profile management
 - [x] Basic AC generation
 - [x] Device registration
 - [x] Myanmar carrier integration
+- [x] GSMA SGP.22/SGP.32 compliance
+- [x] Enterprise security framework
+- [x] React.js PWA frontend
+- [x] Node.js/FastAPI backend
+- [x] Azure DevOps CI/CD pipelines
 
-### Phase 2 (Q2 2024)
+### Phase 2 (Q1 2025)
 - [ ] Advanced campaign management
-- [ ] Bulk operations
+- [ ] Bulk operations optimization
 - [ ] Real-time notifications
-- [ ] Enhanced reporting
+- [ ] Enhanced reporting dashboard
+- [ ] Mobile companion app
 
-### Phase 3 (Q3 2024)
+### Phase 3 (Q2 2025)
 - [ ] Multi-tenant support
 - [ ] Advanced analytics
-- [ ] Mobile companion app
-- [ ] International expansion
+- [ ] International carrier expansion
+- [ ] AI-powered insights
 
 ## Changelog
 
