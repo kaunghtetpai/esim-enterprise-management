@@ -12,6 +12,7 @@ import { DiagnosticPanel } from './components/DiagnosticPanel';
 import { EnterpriseSetupDashboard } from './components/EnterpriseSetupDashboard';
 import { CICDDashboard } from './components/CICDDashboard';
 import { CloudAuthDashboard } from './components/CloudAuthDashboard';
+import SIMListPage from './pages/SIMListPage';
 import { ErrorHandler } from './utils/errorHandler';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { useErrorRecovery } from './hooks/useErrorRecovery';
@@ -240,6 +241,7 @@ function App() {
             <Route path="/enterprise-setup" element={<EnterpriseSetupDashboard />} />
             <Route path="/cicd" element={<CICDDashboard />} />
             <Route path="/auth" element={<CloudAuthDashboard />} />
+                <Route path="/sim-list" element={<SIMListPage />} />
                 <Route path="*" element={
                   <Box sx={{ textAlign: 'center', mt: 4 }}>
                     <Typography variant="h5" gutterBottom>Page Not Found</Typography>
