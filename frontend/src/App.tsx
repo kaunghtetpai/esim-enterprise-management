@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { ThemeProvider, createTheme, CssBaseline, Box, AppBar, Toolbar, Typography, Button } from '@mui/material';
 import SIMListPage from './pages/SIMListPage';
+import GSMACertificatesPage from './pages/GSMACertificatesPage';
 
 const theme = createTheme({
   palette: {
@@ -27,6 +28,7 @@ function App() {
           <Routes>
             <Route path="/" element={<SIMListPage />} />
             <Route path="/sim-list" element={<SIMListPage />} />
+            <Route path="/gsma-certificates" element={<GSMACertificatesPage />} />
             <Route path="*" element={
               <Box sx={{ textAlign: 'center', mt: 4 }}>
                 <Typography variant="h5" gutterBottom>EPM Portal</Typography>
