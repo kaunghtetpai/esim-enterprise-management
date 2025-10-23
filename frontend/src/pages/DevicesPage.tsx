@@ -1,52 +1,39 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   Box, Typography, Button, Table, TableBody, TableCell, TableContainer,
-  TableHead, TableRow, Paper, Chip, IconButton, Grid, Card, CardContent
+  TableHead, TableRow, Paper, Chip, IconButton, Grid, Card, CardContent,
+  Skeleton, Alert, useMediaQuery, useTheme, TextField, InputAdornment
 } from '@mui/material';
-import { Add, Refresh, PhoneAndroid, Computer, Tablet } from '@mui/icons-material';
+import { Add, Refresh, PhoneAndroid, Computer, Tablet, Search, Sync } from '@mui/icons-material';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '../lib/supabase';
 
 export const DevicesPage: React.FC = () => {
-  const [devices, setDevices] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const [searchTerm, setSearchTerm] = useState('');
 
-  useEffect(() => {
-    loadDevices();
-  }, []);
-
-  const loadDevices = async () => {
-    try {
-      setLoading(true);
-      // Mock data for now
-      setDevices([
-        {
-          id: '1',
-          device_name: 'iPhone 14 Pro',
-          model: 'iPhone14,3',
-          manufacturer: 'Apple',
-          serial_number: 'F2LLD2XHMD',
-          imei: '123456789012345',
-          compliance_state: 'compliant',
-          is_managed: true,
-          user_name: 'John Doe'
-        },
-        {
-          id: '2',
-          device_name: 'Samsung Galaxy S23',
-          model: 'SM-S911B',
-          manufacturer: 'Samsung',
-          serial_number: 'R58RB1ABCDE',
-          imei: '987654321098765',
-          compliance_state: 'noncompliant',
-          is_managed: true,
-          user_name: 'Jane Smith'
-        }
-      ]);
-    } catch (error) {
-      console.error('Failed to load devices:', error);
-    } finally {
-      setLoading(false);
+  const { data: devices = [], isLoading, error, refetch } = useQuery({
+    queryKey: ['devices'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('devices')
+        .select(`
+          *,
+          users(display_name)
+        `)
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      return data || [];
     }
-  };
+  });
+
+  const filteredDevices = devices.filter(device => 
+    device.device_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    device.model?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    device.serial_number?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   const getComplianceColor = (state: string) => {
     switch (state) {
@@ -65,74 +52,130 @@ export const DevicesPage: React.FC = () => {
 
   return (
     <Box p={3}>
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-        <Typography variant="h4" component="h1">
+      <Box 
+        display="flex" 
+        flexDirection={{ xs: 'column', md: 'row' }}
+        justifyContent="space-between" 
+        alignItems={{ xs: 'stretch', md: 'center' }}
+        mb={3}
+        gap={2}
+      >
+        <Typography variant="h4" component="h1" sx={{ fontWeight: 600 }}>
           Device Management
         </Typography>
-        <Box>
+        <Box display="flex" gap={1} flexDirection={{ xs: 'column', sm: 'row' }}>
           <Button
             variant="outlined"
-            startIcon={<Refresh />}
-            onClick={loadDevices}
-            sx={{ mr: 1 }}
+            startIcon={<Sync />}
+            onClick={() => refetch()}
+            disabled={isLoading}
+            size={isMobile ? 'small' : 'medium'}
           >
             Sync from Intune
           </Button>
           <Button
             variant="contained"
             startIcon={<Add />}
+            size={isMobile ? 'small' : 'medium'}
           >
             Register Device
           </Button>
         </Box>
       </Box>
 
-      <Grid container spacing={3} mb={3}>
+      <Box mb={3}>
+        <TextField
+          fullWidth
+          placeholder="Search devices by name, model, or serial number..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <Search />
+              </InputAdornment>
+            ),
+          }}
+          sx={{ maxWidth: { md: 400 } }}
+        />
+      </Box>
+
+      {error && (
+        <Alert severity="error" sx={{ mb: 3 }}>
+          Failed to load devices. Please try again.
+        </Alert>
+      )}
+
+      <Grid container spacing={{ xs: 2, md: 3 }} mb={3}>
         <Grid item xs={12} sm={6} md={3}>
-          <Card>
+          <Card sx={{ height: '100%' }}>
             <CardContent>
-              <Typography color="textSecondary" gutterBottom>
-                Total Devices
-              </Typography>
-              <Typography variant="h4">
-                {devices.length}
-              </Typography>
+              {isLoading ? (
+                <Skeleton variant="rectangular" height={60} />
+              ) : (
+                <>
+                  <Typography color="textSecondary" gutterBottom>
+                    Total Devices
+                  </Typography>
+                  <Typography variant="h4" sx={{ fontWeight: 600 }}>
+                    {filteredDevices.length}
+                  </Typography>
+                </>
+              )}
             </CardContent>
           </Card>
         </Grid>
         <Grid item xs={12} sm={6} md={3}>
-          <Card>
+          <Card sx={{ height: '100%' }}>
             <CardContent>
-              <Typography color="textSecondary" gutterBottom>
-                Managed Devices
-              </Typography>
-              <Typography variant="h4">
-                {devices.filter(d => d.is_managed).length}
-              </Typography>
+              {isLoading ? (
+                <Skeleton variant="rectangular" height={60} />
+              ) : (
+                <>
+                  <Typography color="textSecondary" gutterBottom>
+                    Managed Devices
+                  </Typography>
+                  <Typography variant="h4" sx={{ fontWeight: 600, color: 'primary.main' }}>
+                    {filteredDevices.filter(d => d.is_managed).length}
+                  </Typography>
+                </>
+              )}
             </CardContent>
           </Card>
         </Grid>
         <Grid item xs={12} sm={6} md={3}>
-          <Card>
+          <Card sx={{ height: '100%' }}>
             <CardContent>
-              <Typography color="textSecondary" gutterBottom>
-                Compliant
-              </Typography>
-              <Typography variant="h4">
-                {devices.filter(d => d.compliance_state === 'compliant').length}
-              </Typography>
+              {isLoading ? (
+                <Skeleton variant="rectangular" height={60} />
+              ) : (
+                <>
+                  <Typography color="textSecondary" gutterBottom>
+                    Compliant
+                  </Typography>
+                  <Typography variant="h4" sx={{ fontWeight: 600, color: 'success.main' }}>
+                    {filteredDevices.filter(d => d.compliance_state === 'compliant').length}
+                  </Typography>
+                </>
+              )}
             </CardContent>
           </Card>
         </Grid>
         <Grid item xs={12} sm={6} md={3}>
-          <Card>
+          <Card sx={{ height: '100%' }}>
             <CardContent>
-              <Typography color="textSecondary" gutterBottom>
-                Non-Compliant
-              </Typography>
-              <Typography variant="h4">
-                {devices.filter(d => d.compliance_state === 'noncompliant').length}
-              </Typography>
+              {isLoading ? (
+                <Skeleton variant="rectangular" height={60} />
+              ) : (
+                <>
+                  <Typography color="textSecondary" gutterBottom>
+                    Non-Compliant
+                  </Typography>
+                  <Typography variant="h4" sx={{ fontWeight: 600, color: 'error.main' }}>
+                    {filteredDevices.filter(d => d.compliance_state === 'noncompliant').length}
+                  </Typography>
+                </>
+              )}
             </CardContent>
           </Card>
         </Grid>
@@ -152,7 +195,18 @@ export const DevicesPage: React.FC = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {devices.map((device) => (
+            {isLoading ? (
+              Array.from({ length: 5 }).map((_, index) => (
+                <TableRow key={index}>
+                  {Array.from({ length: 7 }).map((_, cellIndex) => (
+                    <TableCell key={cellIndex}>
+                      <Skeleton variant="text" />
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))
+            ) : (
+              filteredDevices.map((device) => (
               <TableRow key={device.id}>
                 <TableCell>
                   <Box display="flex" alignItems="center">
@@ -170,7 +224,7 @@ export const DevicesPage: React.FC = () => {
                 <TableCell>{device.model}</TableCell>
                 <TableCell>{device.serial_number}</TableCell>
                 <TableCell>{device.imei}</TableCell>
-                <TableCell>{device.user_name}</TableCell>
+                <TableCell>{device.users?.display_name || 'Unassigned'}</TableCell>
                 <TableCell>
                   <Chip
                     label={device.compliance_state}
@@ -186,7 +240,8 @@ export const DevicesPage: React.FC = () => {
                   />
                 </TableCell>
               </TableRow>
-            ))}
+              ))
+            )}
           </TableBody>
         </Table>
       </TableContainer>
