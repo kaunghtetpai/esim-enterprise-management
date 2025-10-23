@@ -1,0 +1,224 @@
+import { Request, Response, NextFunction } from 'express';
+
+// Custom error class
+export class AppError extends Error {
+  public statusCode: number;
+  public code: string;
+  public isOperational: boolean;
+
+  constructor(message: string, statusCode: number, code: string = 'INTERNAL_ERROR') {
+    super(message);
+    this.statusCode = statusCode;
+    this.code = code;
+    this.isOperational = true;
+
+    Error.captureStackTrace(this, this.constructor);
+  }
+}
+
+// Database error handler
+export const handleDatabaseError = (error: any): AppError => {
+  switch (error.code) {
+    case '23505': // Unique violation
+      return new AppError('Duplicate entry found', 409, 'DUPLICATE_ENTRY');
+    
+    case '23503': // Foreign key violation
+      return new AppError('Invalid reference to related data', 400, 'INVALID_REFERENCE');
+    
+    case '23502': // Not null violation
+      return new AppError('Required field is missing', 400, 'MISSING_REQUIRED_FIELD');
+    
+    case '23514': // Check violation
+      return new AppError('Data validation failed', 400, 'VALIDATION_FAILED');
+    
+    case '42P01': // Undefined table
+      return new AppError('Database table not found', 500, 'TABLE_NOT_FOUND');
+    
+    case '42703': // Undefined column
+      return new AppError('Database column not found', 500, 'COLUMN_NOT_FOUND');
+    
+    case '08003': // Connection does not exist
+    case '08006': // Connection failure
+      return new AppError('Database connection failed', 503, 'DATABASE_CONNECTION_ERROR');
+    
+    case '53300': // Too many connections
+      return new AppError('Database connection limit reached', 503, 'CONNECTION_LIMIT_REACHED');
+    
+    default:
+      return new AppError('Database operation failed', 500, 'DATABASE_ERROR');
+  }
+};
+
+// Async error wrapper
+export const asyncHandler = (fn: Function) => {
+  return (req: Request, res: Response, next: NextFunction) => {
+    Promise.resolve(fn(req, res, next)).catch(next);
+  };
+};
+
+// Global error handler middleware
+export const globalErrorHandler = (
+  err: any,
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  let error = { ...err };
+  error.message = err.message;
+
+  // Log error details
+  console.error('Error Details:', {
+    message: error.message,
+    stack: error.stack,
+    url: req.url,
+    method: req.method,
+    body: req.body,
+    params: req.params,
+    query: req.query,
+    timestamp: new Date().toISOString(),
+    userAgent: req.get('User-Agent'),
+    ip: req.ip
+  });
+
+  // Handle specific error types
+  if (error.code && error.code.startsWith('23')) {
+    error = handleDatabaseError(error);
+  }
+
+  // Handle JWT errors
+  if (error.name === 'JsonWebTokenError') {
+    error = new AppError('Invalid token', 401, 'INVALID_TOKEN');
+  }
+
+  if (error.name === 'TokenExpiredError') {
+    error = new AppError('Token expired', 401, 'TOKEN_EXPIRED');
+  }
+
+  // Handle validation errors
+  if (error.name === 'ValidationError') {
+    const message = Object.values(error.errors).map((val: any) => val.message).join(', ');
+    error = new AppError(message, 400, 'VALIDATION_ERROR');
+  }
+
+  // Handle cast errors
+  if (error.name === 'CastError') {
+    error = new AppError('Invalid data format', 400, 'INVALID_DATA_FORMAT');
+  }
+
+  // Handle syntax errors
+  if (error instanceof SyntaxError) {
+    error = new AppError('Invalid JSON format', 400, 'INVALID_JSON');
+  }
+
+  // Handle rate limit errors
+  if (error.message && error.message.includes('Too many requests')) {
+    error = new AppError('Too many requests', 429, 'RATE_LIMIT_EXCEEDED');
+  }
+
+  // Default error response
+  const statusCode = error.statusCode || 500;
+  const errorResponse: any = {
+    success: false,
+    error: error.message || 'Internal server error',
+    code: error.code || 'INTERNAL_ERROR',
+    timestamp: new Date().toISOString(),
+    path: req.originalUrl,
+    method: req.method
+  };
+
+  // Add stack trace in development
+  if (process.env.NODE_ENV === 'development') {
+    errorResponse.stack = error.stack;
+  }
+
+  // Add request ID if available
+  if (req.headers['x-request-id']) {
+    errorResponse.requestId = req.headers['x-request-id'];
+  }
+
+  res.status(statusCode).json(errorResponse);
+};
+
+// 404 handler
+export const notFoundHandler = (req: Request, res: Response, next: NextFunction) => {
+  const error = new AppError(`Route ${req.originalUrl} not found`, 404, 'ROUTE_NOT_FOUND');
+  next(error);
+};
+
+// Unhandled promise rejection handler
+export const handleUnhandledRejection = () => {
+  process.on('unhandledRejection', (reason: any, promise: Promise<any>) => {
+    console.error('Unhandled Promise Rejection:', {
+      reason: reason.message || reason,
+      stack: reason.stack,
+      timestamp: new Date().toISOString()
+    });
+    
+    // Graceful shutdown
+    process.exit(1);
+  });
+};
+
+// Uncaught exception handler
+export const handleUncaughtException = () => {
+  process.on('uncaughtException', (error: Error) => {
+    console.error('Uncaught Exception:', {
+      message: error.message,
+      stack: error.stack,
+      timestamp: new Date().toISOString()
+    });
+    
+    // Graceful shutdown
+    process.exit(1);
+  });
+};
+
+// Request timeout handler
+export const timeoutHandler = (timeout: number = 30000) => {
+  return (req: Request, res: Response, next: NextFunction) => {
+    const timer = setTimeout(() => {
+      if (!res.headersSent) {
+        res.status(408).json({
+          success: false,
+          error: 'Request timeout',
+          code: 'REQUEST_TIMEOUT',
+          timestamp: new Date().toISOString()
+        });
+      }
+    }, timeout);
+
+    res.on('finish', () => {
+      clearTimeout(timer);
+    });
+
+    next();
+  };
+};
+
+// Rate limiting error handler
+export const rateLimitHandler = (req: Request, res: Response) => {
+  res.status(429).json({
+    success: false,
+    error: 'Too many requests from this IP',
+    code: 'RATE_LIMIT_EXCEEDED',
+    retryAfter: Math.round(req.rateLimit?.resetTime / 1000) || 60,
+    timestamp: new Date().toISOString()
+  });
+};
+
+// CORS error handler
+export const corsErrorHandler = (req: Request, res: Response, next: NextFunction) => {
+  const origin = req.headers.origin;
+  const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || ['http://localhost:3000'];
+  
+  if (origin && !allowedOrigins.includes(origin)) {
+    return res.status(403).json({
+      success: false,
+      error: 'CORS policy violation',
+      code: 'CORS_ERROR',
+      timestamp: new Date().toISOString()
+    });
+  }
+  
+  next();
+};

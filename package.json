@@ -1,30 +1,63 @@
 {
   "name": "esim-enterprise-management",
   "version": "1.0.0",
-  "description": "eSIM Business Manager Portal with Microsoft Intune integration for Myanmar carriers",
+  "description": "Complete eSIM Enterprise Management Portal with Microsoft Intune Integration",
+  "main": "index.js",
   "scripts": {
-    "dev:frontend": "cd frontend && npm start",
-    "dev:backend": "cd backend && npm run dev",
+    "install:all": "npm install && cd frontend && npm install && cd ../backend && npm install && cd ..",
+    "build": "npm run build:frontend && npm run build:backend",
     "build:frontend": "cd frontend && npm run build",
     "build:backend": "cd backend && npm run build",
-    "build": "npm run build:frontend && npm run build:backend",
-    "test": "npm run test:frontend && npm run test:backend",
-    "test:frontend": "cd frontend && npm test -- --watchAll=false",
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev:frontend": "cd frontend && npm run dev",
+    "dev:backend": "cd backend && npm run dev",
+    "start": "npm run start:backend",
+    "start:backend": "cd backend && npm start",
+    "test": "npm run test:backend && npm run test:frontend",
     "test:backend": "cd backend && npm test",
-    "install:all": "cd frontend && npm install && cd ../backend && npm install",
-    "start": "npm run dev:backend",
-    "deploy:vercel": "vercel --prod",
-    "deploy:netlify": "netlify deploy --prod",
-    "deploy:docker": "docker build -t esim-portal . && docker run -p 8000:8000 esim-portal"
+    "test:frontend": "cd frontend && npm test",
+    "lint": "npm run lint:backend && npm run lint:frontend",
+    "lint:backend": "cd backend && npm run lint",
+    "lint:frontend": "cd frontend && npm run lint",
+    "deploy": "vercel --prod",
+    "deploy:preview": "vercel",
+    "system:check": "powershell -ExecutionPolicy Bypass -File scripts/Complete-System-Check.ps1 -CheckAll",
+    "system:update": "powershell -ExecutionPolicy Bypass -File scripts/Complete-System-Check.ps1 -UpdateAll",
+    "system:fix": "powershell -ExecutionPolicy Bypass -File scripts/Complete-System-Check.ps1 -FixAll",
+    "auth:login": "powershell -ExecutionPolicy Bypass -File scripts/Complete-Cloud-Login-Setup.ps1 -LoginAll",
+    "sync:check": "powershell -ExecutionPolicy Bypass -File scripts/Vercel-GitHub-Sync-Check.ps1 -CheckOnly",
+    "sync:update": "powershell -ExecutionPolicy Bypass -File scripts/Vercel-GitHub-Sync-Check.ps1 -UpdateAll",
+    "deploy:complete": "powershell -ExecutionPolicy Bypass -File scripts/Deploy-All-Systems.ps1 -All"
   },
-  "keywords": ["esim", "intune", "device-management", "myanmar", "pwa", "business-manager"],
-  "homepage": "https://esim-enterprise-management.vercel.app",
   "repository": {
     "type": "git",
     "url": "https://github.com/kaunghtetpai/esim-enterprise-management.git"
   },
-  "author": "eSIM Portal Team",
+  "keywords": [
+    "esim",
+    "enterprise",
+    "management",
+    "intune",
+    "myanmar",
+    "carriers",
+    "mpt",
+    "atom",
+    "mytel"
+  ],
+  "author": "eSIM Enterprise Management Team",
   "license": "MIT",
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "@types/node": "^20.10.0",
+    "typescript": "^5.3.0"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "helmet": "^7.1.0",
+    "morgan": "^1.10.0",
+    "dotenv": "^16.3.1"
+  },
   "engines": {
     "node": ">=18.0.0",
     "npm": ">=9.0.0"
