@@ -1,11 +1,4 @@
 User-agent: *
-Disallow: /api/
-Disallow: /admin/
-Disallow: /dashboard/
 Allow: /
 
-# Sitemap
-Sitemap: https://esim-portal.com/sitemap.xml
-
-# Crawl delay
-Crawl-delay: 1
+Sitemap: https://epm-portal.vercel.app/sitemap.xml

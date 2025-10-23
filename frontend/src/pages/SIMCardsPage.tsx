@@ -163,14 +163,14 @@ const SIMCardsPage: React.FC = () => {
           </Box>
 
           <TableContainer component={Paper}>
-            <Table>
+            <Table aria-label="SIM Cards List">
               <TableHead>
                 <TableRow>
-                  <TableCell>ICCID</TableCell>
-                  <TableCell>LPA Code</TableCell>
-                  <TableCell>Carrier</TableCell>
-                  <TableCell>Status</TableCell>
-                  <TableCell>Actions</TableCell>
+                  <TableCell scope="col">ICCID</TableCell>
+                  <TableCell scope="col">LPA Code</TableCell>
+                  <TableCell scope="col">Carrier</TableCell>
+                  <TableCell scope="col">Status</TableCell>
+                  <TableCell scope="col">Actions</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -191,7 +191,12 @@ const SIMCardsPage: React.FC = () => {
                       />
                     </TableCell>
                     <TableCell>
-                      <Button size="small" variant="outlined">
+                      <Button 
+                        size="small" 
+                        variant="outlined"
+                        aria-label={`View details for SIM card ${card.iccid}`}
+                        sx={{ minHeight: 44 }}
+                      >
                         View Details
                       </Button>
                     </TableCell>

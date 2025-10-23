@@ -19,7 +19,39 @@ import { useErrorRecovery } from './hooks/useErrorRecovery';
 const theme = createTheme({
   palette: {
     primary: { main: '#1976d2' },
-    secondary: { main: '#dc004e' }
+    secondary: { main: '#dc004e' },
+    text: {
+      primary: '#212121',
+      secondary: '#757575'
+    }
+  },
+  typography: {
+    h1: { fontSize: '2.5rem', fontWeight: 600, lineHeight: 1.3 },
+    h2: { fontSize: '2rem', fontWeight: 600, lineHeight: 1.3 },
+    h3: { fontSize: '1.75rem', fontWeight: 600, lineHeight: 1.3 },
+    h4: { fontSize: '1.5rem', fontWeight: 600, lineHeight: 1.3 },
+    h5: { fontSize: '1.25rem', fontWeight: 600, lineHeight: 1.3 },
+    h6: { fontSize: '1rem', fontWeight: 600, lineHeight: 1.3 },
+    body1: { fontSize: '1rem', lineHeight: 1.6 },
+    body2: { fontSize: '0.875rem', lineHeight: 1.6 }
+  },
+  components: {
+    MuiButton: {
+      styleOverrides: {
+        root: {
+          minHeight: 44,
+          textTransform: 'none',
+          fontWeight: 500
+        }
+      }
+    },
+    MuiCard: {
+      styleOverrides: {
+        root: {
+          padding: 24
+        }
+      }
+    }
   }
 });
 
@@ -197,10 +229,10 @@ function App() {
               anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
             />
             
-            <AppBar position="static">
+            <AppBar position="static" role="banner">
               <Toolbar>
-                <Typography variant="h6" sx={{ flexGrow: 1 }}>
-                  eSIM Enterprise Management Portal
+                <Typography variant="h6" component="h1" sx={{ flexGrow: 1 }}>
+                  EPM Portal - eSIM Enterprise Management
                 </Typography>
                 {!isOnline && (
                   <Typography variant="body2" sx={{ mr: 2, color: 'warning.main' }}>
