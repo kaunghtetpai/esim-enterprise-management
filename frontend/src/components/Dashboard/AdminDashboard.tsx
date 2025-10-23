@@ -56,6 +56,7 @@ interface DashboardStats {
 export const AdminDashboard: React.FC = () => {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [bulkDialog, setBulkDialog] = useState({ open: false, type: null });
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
@@ -66,11 +67,18 @@ export const AdminDashboard: React.FC = () => {
   const loadDashboardData = async () => {
     try {
       setLoading(true);
+      setError(null);
       const response = await fetch('/api/v1/dashboard/stats');
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      
       const data = await response.json();
       setStats(data);
     } catch (error) {
       console.error('Failed to load dashboard data:', error);
+      setError('Unable to load dashboard data. Please check your connection and try again.');
     } finally {
       setLoading(false);
     }
@@ -119,48 +127,111 @@ export const AdminDashboard: React.FC = () => {
   return (
     <Box p={3}>
       {/* Header */}
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-        <Typography variant="h4" component="h1">
-          eSIM Business Manager - Admin Dashboard
-        </Typography>
+      <Box 
+        display="flex" 
+        flexDirection={{ xs: 'column', md: 'row' }}
+        justifyContent="space-between" 
+        alignItems={{ xs: 'stretch', md: 'center' }}
+        mb={4}
+        gap={2}
+      >
         <Box>
+          <Typography 
+            variant="h4" 
+            component="h1"
+            sx={{ fontWeight: 600, mb: 0.5 }}
+          >
+            eSIM Enterprise Portal
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            Administrative Dashboard - Myanmar Carriers
+          </Typography>
+        </Box>
+        
+        <Box display="flex" gap={1} flexDirection={{ xs: 'column', sm: 'row' }}>
           <Button
             variant="outlined"
             startIcon={<Refresh />}
             onClick={loadDashboardData}
-            sx={{ mr: 1 }}
+            disabled={loading}
+            size="medium"
           >
-            Refresh
+            Refresh Data
           </Button>
           <Button
             variant="contained"
             startIcon={<Add />}
             onClick={() => handleBulkAction('activation')}
+            size="medium"
           >
-            Bulk Actions
+            Batch Operations
           </Button>
         </Box>
       </Box>
 
+      {/* Error Alert */}
+      {error && (
+        <Alert severity="error" sx={{ mb: 3 }} onClose={() => setError(null)}>
+          {error}
+        </Alert>
+      )}
+
       {/* Stats Cards */}
-      <Grid container spacing={3} mb={3}>
-        <Grid item xs={12} sm={6} md={3}>
-          <Card>
-            <CardContent>
-              <Box display="flex" alignItems="center">
-                <SimCard color="primary" sx={{ mr: 2 }} />
+      <Grid container spacing={{ xs: 2, md: 3 }} mb={4}>
+        <Grid item xs={12} sm={6} lg={3}>
+          <Card 
+            sx={{ 
+              height: '100%',
+              transition: 'all 0.2s ease-in-out',
+              '&:hover': {
+                transform: 'translateY(-2px)',
+                boxShadow: 4
+              }
+            }}
+          >
+            <CardContent sx={{ p: 3 }}>
+              {loading ? (
                 <Box>
-                  <Typography color="textSecondary" gutterBottom>
-                    Total eSIM Profiles
-                  </Typography>
-                  <Typography variant="h5">
-                    {stats?.totalProfiles || 0}
-                  </Typography>
-                  <Typography variant="body2" color="success.main">
-                    {stats?.activeProfiles || 0} Active
-                  </Typography>
+                  <Box width="60%" height={24} bgcolor="grey.200" borderRadius={1} mb={1} />
+                  <Box width="40%" height={32} bgcolor="grey.200" borderRadius={1} mb={1} />
+                  <Box width="80%" height={16} bgcolor="grey.200" borderRadius={1} />
                 </Box>
-              </Box>
+              ) : (
+                <Box display="flex" alignItems="center">
+                  <Box 
+                    sx={{ 
+                      p: 1.5,
+                      borderRadius: 2,
+                      backgroundColor: 'primary.50',
+                      color: 'primary.600',
+                      mr: 2
+                    }}
+                  >
+                    <SimCard />
+                  </Box>
+                  <Box flex={1}>
+                    <Typography 
+                      variant="body2" 
+                      color="text.secondary"
+                      gutterBottom
+                    >
+                      Active eSIM Profiles
+                    </Typography>
+                    <Typography 
+                      variant="h4" 
+                      sx={{ fontWeight: 600, mb: 0.5 }}
+                    >
+                      {stats?.totalProfiles || 0}
+                    </Typography>
+                    <Typography 
+                      variant="caption" 
+                      color="success.main"
+                    >
+                      {stats?.activeProfiles || 0} Currently Active
+                    </Typography>
+                  </Box>
+                </Box>
+              )}
             </CardContent>
           </Card>
         </Grid>

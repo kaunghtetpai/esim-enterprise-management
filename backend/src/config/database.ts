@@ -5,14 +5,31 @@ dotenv.config();
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
-  max: parseInt(process.env.DATABASE_POOL_SIZE || '10'),
+  ssl: { rejectUnauthorized: false },
+  max: parseInt(process.env.DATABASE_POOL_SIZE || '20'),
   idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 2000,
+  connectionTimeoutMillis: 5000,
 });
 
-export const query = (text: string, params?: any[]) => pool.query(text, params);
+export const query = async (text: string, params?: any[]) => {
+  try {
+    const result = await pool.query(text, params);
+    return result;
+  } catch (error) {
+    console.error('Database query error:', error);
+    throw error;
+  }
+};
 
 export const getClient = () => pool.connect();
+
+// Test database connection
+pool.on('connect', () => {
+  console.log('Connected to Supabase PostgreSQL database');
+});
+
+pool.on('error', (err) => {
+  console.error('Database connection error:', err);
+});
 
 export default pool;
