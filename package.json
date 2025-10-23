@@ -11,9 +11,8 @@
     "test": "npm run test:frontend && npm run test:backend",
     "test:frontend": "cd frontend && npm test -- --watchAll=false",
     "test:backend": "cd backend && npm test",
-    "install:all": "npm install && cd frontend && npm install && cd ../backend && npm install",
+    "install:all": "cd frontend && npm install && cd ../backend && npm install",
     "start": "npm run dev:backend",
-    "postinstall": "npm run install:all",
     "deploy:vercel": "vercel --prod",
     "deploy:netlify": "netlify deploy --prod",
     "deploy:docker": "docker build -t esim-portal . && docker run -p 8000:8000 esim-portal"
@@ -25,5 +24,9 @@
     "url": "https://github.com/kaunghtetpai/esim-enterprise-management.git"
   },
   "author": "eSIM Portal Team",
-  "license": "MIT"
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  }
 }
