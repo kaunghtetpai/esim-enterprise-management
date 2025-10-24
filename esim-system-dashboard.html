@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>eSIM Manager Dashboard</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f5f5; }
+        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; text-align: center; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin: 20px 0; }
+        .card { background: white; border-radius: 10px; padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .card h3 { color: #333; margin-bottom: 15px; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+        .status-online { color: #28a745; font-weight: bold; }
+        .status-offline { color: #dc3545; font-weight: bold; }
+        .status-degraded { color: #ffc107; font-weight: bold; }
+        .metric { display: flex; justify-content: space-between; margin: 10px 0; padding: 10px; background: #f8f9fa; border-radius: 5px; }
+        .metric-value { font-weight: bold; font-size: 1.2em; }
+        .progress-bar { width: 100%; height: 20px; background: #e9ecef; border-radius: 10px; overflow: hidden; margin: 10px 0; }
+        .progress-fill { height: 100%; background: linear-gradient(90deg, #28a745, #20c997); transition: width 0.3s ease; }
+        .alert { padding: 10px; margin: 10px 0; border-radius: 5px; }
+        .alert-success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .alert-warning { background: #fff3cd; color: #856404; border: 1px solid #ffeaa7; }
+        .alert-danger { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .device-list { max-height: 300px; overflow-y: auto; }
+        .device-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #eee; }
+        .device-item:last-child { border-bottom: none; }
+        .btn { padding: 8px 16px; border: none; border-radius: 5px; cursor: pointer; font-size: 14px; }
+        .btn-primary { background: #007bff; color: white; }
+        .btn-success { background: #28a745; color: white; }
+        .btn-danger { background: #dc3545; color: white; }
+        .map-container { height: 300px; background: #e9ecef; border-radius: 5px; display: flex; align-items: center; justify-content: center; color: #6c757d; }
+        .transfer-log { max-height: 250px; overflow-y: auto; font-family: monospace; font-size: 12px; background: #f8f9fa; padding: 10px; border-radius: 5px; }
+        .log-entry { margin: 5px 0; padding: 5px; border-left: 3px solid #007bff; }
+        .log-success { border-left-color: #28a745; }
+        .log-error { border-left-color: #dc3545; }
+        .log-warning { border-left-color: #ffc107; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>eSIM Manager Dashboard</h1>
+        <p>Comprehensive eSIM Transfer and Management System</p>
+        <p id="last-updated">Last Updated: <span id="timestamp"></span></p>
+    </div>
+
+    <div class="container">
+        <!-- System Health Overview -->
+        <div class="card">
+            <h3>System Health Overview</h3>
+            <div class="metric">
+                <span>Overall System Health</span>
+                <span class="metric-value" id="system-health">75%</span>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="health-progress" style="width: 75%"></div>
+            </div>
+            <div class="alert alert-warning">
+                <strong>Warning:</strong> EMS E3 license required for full functionality
+            </div>
+        </div>
+
+        <div class="grid">
+            <!-- Domain Monitoring -->
+            <div class="card">
+                <h3>Domain & API Status</h3>
+                <div id="domain-status">
+                    <div class="metric">
+                        <span>thl-mcs-d-odccsm.firebaseio.com</span>
+                        <span class="status-online">ONLINE</span>
+                    </div>
+                    <div class="metric">
+                        <span>support.google.com</span>
+                        <span class="status-online">ONLINE</span>
+                    </div>
+                    <div class="metric">
+                        <span>simtransfer.goog</span>
+                        <span class="status-degraded">DEGRADED</span>
+                    </div>
+                    <div class="metric">
+                        <span>migrate.google</span>
+                        <span class="status-online">ONLINE</span>
+                    </div>
+                    <div class="metric">
+                        <span>httpstat.us</span>
+                        <span class="status-online">ONLINE</span>
+                    </div>
+                    <div class="metric">
+                        <span>carrier-qrcless-demo.appspot.com</span>
+                        <span class="status-offline">OFFLINE</span>
+                    </div>
+                </div>
+                <button class="btn btn-primary" onclick="refreshDomainStatus()">Refresh Status</button>
+            </div>
+
+            <!-- Device Management -->
+            <div class="card">
+                <h3>Device Management</h3>
+                <div class="metric">
+                    <span>Total eSIM Devices</span>
+                    <span class="metric-value">24</span>
+                </div>
+                <div class="metric">
+                    <span>Compliant Devices</span>
+                    <span class="metric-value status-online">18</span>
+                </div>
+                <div class="metric">
+                    <span>Non-Compliant Devices</span>
+                    <span class="metric-value status-danger">6</span>
+                </div>
+                <div class="device-list">
+                    <div class="device-item">
+                        <span>iPhone 14 Pro (iOS 16.5)</span>
+                        <span class="status-online">COMPLIANT</span>
+                    </div>
+                    <div class="device-item">
+                        <span>Samsung Galaxy S23 (Android 13)</span>
+                        <span class="status-online">COMPLIANT</span>
+                    </div>
+                    <div class="device-item">
+                        <span>iPhone 13 (iOS 15.7)</span>
+                        <span class="status-offline">NON-COMPLIANT</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Myanmar Carriers -->
+            <div class="card">
+                <h3>Myanmar Carrier Status</h3>
+                <div class="metric">
+                    <span>MPT (414-01)</span>
+                    <span class="status-online">ONLINE</span>
+                </div>
+                <div class="metric">
+                    <span>ATOM (414-06)</span>
+                    <span class="status-online">ONLINE</span>
+                </div>
+                <div class="metric">
+                    <span>OOREDOO (414-05)</span>
+                    <span class="status-degraded">DEGRADED</span>
+                </div>
+                <div class="metric">
+                    <span>MYTEL (414-09)</span>
+                    <span class="status-online">ONLINE</span>
+                </div>
+                <div class="alert alert-success">
+                    All carrier SM-DP+ servers accessible
+                </div>
+            </div>
+        </div>
+
+        <div class="grid">
+            <!-- eSIM Transfer Activity -->
+            <div class="card">
+                <h3>Recent eSIM Transfers</h3>
+                <div class="metric">
+                    <span>Transfers Today</span>
+                    <span class="metric-value">12</span>
+                </div>
+                <div class="metric">
+                    <span>Success Rate</span>
+                    <span class="metric-value status-online">94%</span>
+                </div>
+                <div class="transfer-log">
+                    <div class="log-entry log-success">
+                        [14:32:15] Transfer completed: iPhone14Pro → GalaxyS23 (MPT)
+                    </div>
+                    <div class="log-entry log-success">
+                        [14:28:42] Transfer completed: iPhone13 → iPhone14 (OOREDOO)
+                    </div>
+                    <div class="log-entry log-error">
+                        [14:15:33] Transfer failed: Device not compliant (ATOM)
+                    </div>
+                    <div class="log-entry log-warning">
+                        [14:02:18] Transfer delayed: SM-DP+ timeout (MYTEL)
+                    </div>
+                    <div class="log-entry log-success">
+                        [13:45:27] Transfer completed: GalaxyS22 → iPhone13Pro (MPT)
+                    </div>
+                </div>
+                <button class="btn btn-success" onclick="startTransfer()">Start New Transfer</button>
+            </div>
+
+            <!-- Geographic Distribution -->
+            <div class="card">
+                <h3>Geographic Distribution</h3>
+                <div class="map-container">
+                    <div>
+                        <h4>Server Locations</h4>
+                        <p>🇺🇸 USA (Missouri, California, Iowa): 4 servers</p>
+                        <p>🇮🇪 Ireland (Dublin): 1 server</p>
+                        <p>🇲🇲 Myanmar: 4 carrier servers</p>
+                        <p>📍 Interactive map coming soon</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- System Alerts -->
+            <div class="card">
+                <h3>System Alerts</h3>
+                <div class="alert alert-danger">
+                    <strong>Critical:</strong> EMS E3 license required for Intune functionality
+                </div>
+                <div class="alert alert-warning">
+                    <strong>Warning:</strong> 6 devices require compliance updates
+                </div>
+                <div class="alert alert-warning">
+                    <strong>Notice:</strong> OOREDOO SM-DP+ server experiencing delays
+                </div>
+                <div class="alert alert-success">
+                    <strong>Info:</strong> All domain endpoints responding normally
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="card">
+            <h3>Quick Actions</h3>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <button class="btn btn-primary" onclick="runHealthCheck()">Run Health Check</button>
+                <button class="btn btn-success" onclick="deployProfiles()">Deploy eSIM Profiles</button>
+                <button class="btn btn-primary" onclick="syncDevices()">Sync All Devices</button>
+                <button class="btn btn-danger" onclick="viewLogs()">View Error Logs</button>
+                <button class="btn btn-primary" onclick="generateReport()">Generate Report</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Update timestamp
+        document.getElementById('timestamp').textContent = new Date().toLocaleString();
+
+        // Dashboard functions
+        function refreshDomainStatus() {
+            alert('Refreshing domain status...');
+            // In real implementation, this would call the API monitoring script
+        }
+
+        function startTransfer() {
+            alert('Starting new eSIM transfer workflow...');
+            // In real implementation, this would open transfer dialog
+        }
+
+        function runHealthCheck() {
+            alert('Running comprehensive health check...');
+            // In real implementation, this would call error-check-update.ps1
+        }
+
+        function deployProfiles() {
+            alert('Deploying eSIM profiles to all devices...');
+            // In real implementation, this would call device management script
+        }
+
+        function syncDevices() {
+            alert('Syncing all managed devices...');
+            // In real implementation, this would trigger Intune sync
+        }
+
+        function viewLogs() {
+            alert('Opening error logs viewer...');
+            // In real implementation, this would open log viewer
+        }
+
+        function generateReport() {
+            alert('Generating comprehensive system report...');
+            // In real implementation, this would generate PDF/HTML report
+        }
+
+        // Auto-refresh every 5 minutes
+        setInterval(function() {
+            document.getElementById('timestamp').textContent = new Date().toLocaleString();
+            // In real implementation, this would refresh all data
+        }, 300000);
+
+        // Simulate real-time updates
+        setInterval(function() {
+            const healthValue = Math.floor(Math.random() * 10) + 70;
+            document.getElementById('system-health').textContent = healthValue + '%';
+            document.getElementById('health-progress').style.width = healthValue + '%';
+        }, 10000);
+    </script>
+</body>
+</html>

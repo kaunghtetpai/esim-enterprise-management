@@ -1,0 +1,148 @@
+{
+    "Summary":  {
+                    "TotalSettings":  16,
+                    "ConfiguredSettings":  13,
+                    "FailedSettings":  0
+                },
+    "TenantId":  null,
+    "Timestamp":  {
+                      "value":  "\/Date(1761152940904)\/",
+                      "DisplayHint":  2,
+                      "DateTime":  "Wednesday, October 22, 2025 11:39:00 PM"
+                  },
+    "Settings":  [
+                     {
+                         "Setting":  "ModernAuthentication",
+                         "Status":  "DISABLED",
+                         "Config":  {
+                                        "EnforceForAllApps":  true,
+                                        "Enabled":  true
+                                    }
+                     },
+                     {
+                         "Setting":  "AccountLinking",
+                         "Status":  "CONFIGURED",
+                         "Config":  {
+                                        "AllowEntraIDLinking":  true,
+                                        "Description":  "Allow users to connect Microsoft Entra ID accounts"
+                                    }
+                     },
+                     {
+                         "Setting":  "DirectorySync",
+                         "Status":  "DISABLED",
+                         "Config":  {
+                                        "SyncMethod":  "EntraConnect",
+                                        "EnableSync":  true
+                                    }
+                     },
+                     {
+                         "Setting":  "AdoptionScore",
+                         "Status":  "CONFIGURED",
+                         "Config":  {
+                                        "PrivacyLevel":  "Standard",
+                                        "EnableReporting":  true
+                                    }
+                     },
+                     {
+                         "Setting":  "DynamicsCRM",
+                         "Status":  "CONFIGURED",
+                         "Config":  {
+                                        "DataSharing":  false,
+                                        "Enabled":  false
+                                    }
+                     },
+                     {
+                         "Setting":  "Microsoft365Web",
+                         "Status":  "CONFIGURED",
+                         "Config":  {
+                                        "ExternalAccess":  "Restricted",
+                                        "ThirdPartyStorage":  false
+                                    }
+                     },
+                     {
+                         "Setting":  "AzureSpeechServices",
+                         "Status":  "CONFIGURED",
+                         "Config":  {
+                                        "UseOrgData":  false,
+                                        "AllowDataImprovement":  false
+                                    }
+                     },
+                     {
+                         "Setting":  "MultiFactor",
+                         "Status":  "DISABLED",
+                         "Config":  {
+                                        "Methods":  [
+                                                        "Authenticator",
+                                                        "SMS",
+                                                        "Call"
+                                                    ],
+                                        "Required":  true
+                                    }
+                     },
+                     {
+                         "Setting":  "SearchIntelligence",
+                         "Status":  "CONFIGURED",
+                         "Config":  {
+                                        "DataCollection":  "Standard",
+                                        "UsageAnalytics":  true
+                                    }
+                     },
+                     {
+                         "Setting":  "CopilotForSales",
+                         "Status":  "CONFIGURED",
+                         "Config":  {
+                                        "DataAccess":  "Restricted",
+                                        "Enabled":  false
+                                    }
+                     },
+                     {
+                         "Setting":  "Cortana",
+                         "Status":  "CONFIGURED",
+                         "Config":  {
+                                        "WindowsIntegration":  false,
+                                        "DataAccess":  "Disabled"
+                                    }
+                     },
+                     {
+                         "Setting":  "Whiteboard",
+                         "Status":  "CONFIGURED",
+                         "Config":  {
+                                        "ExternalSharing":  false,
+                                        "Enabled":  true
+                                    }
+                     },
+                     {
+                         "Setting":  "Microsoft365Groups",
+                         "Status":  "CONFIGURED",
+                         "Config":  {
+                                        "AllowOwnerlessGroups":  false,
+                                        "ExternalSharing":  false
+                                    }
+                     },
+                     {
+                         "Setting":  "BrandCenter",
+                         "Status":  "CONFIGURED",
+                         "Config":  {
+                                        "EnableCustomization":  true,
+                                        "AllowBrandAssets":  true
+                                    }
+                     },
+                     {
+                         "Setting":  "SelfServiceTrials",
+                         "Status":  "CONFIGURED",
+                         "Config":  {
+                                        "AllowUserPurchases":  false,
+                                        "AllowUserTrials":  false
+                                    }
+                     },
+                     {
+                         "Setting":  "MicrosoftForms",
+                         "Status":  "CONFIGURED",
+                         "Config":  {
+                                        "RecordNames":  true,
+                                        "ExternalSharing":  false
+                                    }
+                     }
+                 ],
+    "Organization":  null
+}
