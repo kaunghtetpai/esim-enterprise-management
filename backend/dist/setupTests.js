@@ -1,5 +1,0 @@
-// Test setup for backend
-process.env.NODE_ENV = 'test';
-process.env.JWT_SECRET = 'test-secret';
-process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test_db';
-//# sourceMappingURL=setupTests.js.map
