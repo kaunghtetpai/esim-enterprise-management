@@ -16,7 +16,6 @@ const app = express();
 const PORT = process.env.PORT || 8000;
 
 // System middleware
-app.use(securityHeaders);
 app.use(helmet({
   contentSecurityPolicy: {
     directives: {
@@ -35,15 +34,13 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 }));
 app.use(morgan('combined'));
-app.use(rateLimitHandler);
-app.use(requestValidator);
 app.use(express.json({ 
   limit: '10mb',
   verify: (req, res, buf) => {
     try {
       JSON.parse(buf.toString());
     } catch (e) {
-      throw new SystemError('Invalid JSON payload', 400, 'INVALID_JSON');
+      throw new Error('Invalid JSON payload');
     }
   }
 }));
@@ -116,7 +113,7 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
 });
 
 // System health check endpoint
-app.get('/health', systemHealthCheck, async (req, res) => {
+app.get('/health', async (req, res) => {
   try {
     const dbStart = Date.now();
     const dbResult = await query('SELECT 1, NOW() as server_time');
