@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://epm-portal.vercel.app/sitemap.xml

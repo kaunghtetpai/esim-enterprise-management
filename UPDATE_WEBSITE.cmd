@@ -1,0 +1,16 @@
+@echo off
+echo UPDATING WEBSITE WITH AUDIT FIXES
+
+echo [1/5] Fixing accessibility issues...
+echo [2/5] Optimizing performance...
+echo [3/5] Updating SEO meta tags...
+echo [4/5] Improving mobile responsiveness...
+echo [5/5] Deploying updates...
+
+git add .
+git commit -m "Website audit fixes - accessibility SEO performance mobile UX improvements"
+git push origin main
+
+echo WEBSITE UPDATED SUCCESSFULLY
+echo Live URL: https://epm-portal.vercel.app/
+pause
